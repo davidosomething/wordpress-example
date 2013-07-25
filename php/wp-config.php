@@ -43,9 +43,6 @@ define('DB_COLLATE', '');
  * @since 2.6.0
  */
 
-// This is where we define the OpenShift specific secure variable functions
-require_once(ABSPATH . '../.openshift/openshift.inc');
-
 // Set the default keys to use
 $_default_keys = array(
   'AUTH_KEY'          => ' w*lE&r=t-;!|rhdx5}vlF+b=+D>a)R:nTY1Kdrw[~1,xDQS]L&PA%uyZ2:w6#ec',
@@ -57,37 +54,7 @@ $_default_keys = array(
   'LOGGED_IN_SALT'    => 'N<mft[~OZp0&Sn#t(IK2px0{KloRcjvIJ1+]:,Ye]>tb*_aM8P&2-bU~_Z>L/n(k',
   'NONCE_SALT'        => 'u E-DQw%[k7l8SX=fsAVT@|_U/~_CUZesq{v(=y2}#X&lTRL{uOVzw6b!]`frTQ|'
 );
-
-// This function gets called by openshift_secure and passes an array
-function make_secure_key($args) {
-  $hash = $args['hash'];
-  $key  = $args['variable'];
-  $original = $args['original'];
-
-	$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  $chars .= '!@#$%^&*()';
-  $chars .= '-_ []{}<>~`+=,.;:/?|';
-
-  // Convert the hash to an int to seed the RNG
-  srand(hexdec(substr($hash,0,8)));
-  // Create a random string the same length as the default
-  $val = '';
-  for($i = 1; $i <= strlen($original); $i++){
-    $val .= substr( $chars, rand(0,strlen($chars))-1, 1);
-  }
-  // Reset the RNG
-  srand();
-  // Set the value
-  return $val;
-}
-
-// Generate OpenShift secure keys (or return defaults if not on OpenShift)
-$array = openshift_secure($_default_keys,'make_secure_key');
-
-// Loop through returned values and define them
-foreach ($array as $key => $value) {
-  define($key,$value);
-}
+// the keys are defined in a loop below, using OpenShift key generation functions
 
 /**#@-*/
 
@@ -128,6 +95,18 @@ define('FORCE_SSL_ADMIN', true);
 /** Absolute path to the WordPress directory. */
 if ( !defined('ABSPATH') )
   define('ABSPATH', dirname(__FILE__) . '/');
+
+/** Openshift **/
+// This is where we define the OpenShift specific secure variable functions
+require_once(ABSPATH . '../.openshift/openshift.inc');
+
+// Generate OpenShift secure keys (or return defaults if not on OpenShift)
+$array = openshift_secure($_default_keys,'make_secure_key');
+
+// Loop through returned values and define them
+foreach ($array as $key => $value) {
+  define($key,$value);
+}
 
 /** Tell WordPress where the plugins directory really is */
 if ( !defined('WP_PLUGIN_DIR') && is_link(ABSPATH . '/wp-content/plugins') )

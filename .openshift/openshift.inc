@@ -1,4 +1,27 @@
 <?php
+// This function gets called by openshift_secure and passes an array
+function make_secure_key($args) {
+  $hash = $args['hash'];
+  $key  = $args['variable'];
+  $original = $args['original'];
+
+	$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  $chars .= '!@#$%^&*()';
+  $chars .= '-_ []{}<>~`+=,.;:/?|';
+
+  // Convert the hash to an int to seed the RNG
+  srand(hexdec(substr($hash,0,8)));
+  // Create a random string the same length as the default
+  $val = '';
+  for($i = 1; $i <= strlen($original); $i++){
+    $val .= substr( $chars, rand(0,strlen($chars))-1, 1);
+  }
+  // Reset the RNG
+  srand();
+  // Set the value
+  return $val;
+}
+
 
 // Gets the secret token provided by OpenShift 
 // Or generates one (this is slightly less secure, but good enough for now)
